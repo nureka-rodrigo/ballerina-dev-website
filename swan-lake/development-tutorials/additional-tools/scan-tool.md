@@ -6,85 +6,174 @@ permalink: /learn/scan-tool/
 active: scan-tool
 ---
 
-The Ballerina scan tool is a static code analysis tool that performs analysis on Ballerina projects and identifies potential code smells, bugs, and vulnerabilities without executing them.
+The Ballerina scan tool is a static code analysis tool that performs analysis on Ballerina projects and identifies
+potential code smells, bugs, and vulnerabilities without executing them.
 
->**Note:** Ballerina scan is an experimental feature that supports only a limited set of rules.
+> **Note:** Ballerina scan is an experimental feature that supports only a limited set of rules.
 
 ## Install the tool
 
-Execute the command below to pull the scan tool from [Ballerina Central](https://central.ballerina.io/ballerina/wsdl/latest).
+Execute the command below to pull the scan tool
+from [Ballerina Central](https://central.ballerina.io/ballerina/scan/latest).
 
 ```
 $ bal tool pull scan
 ```
 
-To learn more about managing Ballerina tools, refer to the [Ballerina CLI tool command documentation](https://ballerina.io/learn/cli-commands/#tool-commands).
+To verify the installation and check the version:
 
-## Usage Guide for Ballerina scan tool
-
-The Ballerina scan tool helps you analyze your Ballerina project for potential issues, enforce coding standards, and generate detailed reports. 
-
-The scan tool supports several command-line options as follows.
-
-``` bash
-$ bal scan [--target-dir] <target-dir>
-        [--scan-report] 
-        [--list-rules]
-        [--include-rules] <id(s)-of-rule(s)-to-include>
-        [--exclude-rules] <id(s)-of-rule(s)-to-exclude>
-        [--platforms] <platform(s)-to-report-results>
+```
+$ bal tool list
 ```
 
-Below are various ways you can use the tool to fit your development workflow.
+For more information about managing Ballerina tools, refer to
+the [Ballerina CLI tool command documentation](https://ballerina.io/learn/cli-commands/#tool-commands).
 
-### Scan a Ballerina project
+## Command syntax
 
-To run a full analysis across all Ballerina files in your project, use the following command:
+The Ballerina scan tool follows this general syntax:
+
+```
+$ bal scan [OPTIONS] [<package>|<source-file>]
+```
+
+### Arguments
+
+- `<package>`: Analyzes all Ballerina files in the specified package (optional, defaults to current directory)
+- `<source-file>`: Analyzes a specific standalone Ballerina file (`.bal` extension required)
+
+> **Important:** Analyzing individual Ballerina files that are part of a package is not allowed.
+> You must analyze the entire package or work with standalone files.
+
+### Available options
+
+| Option                         | Description                                         |
+|--------------------------------|-----------------------------------------------------|
+| `--target-dir=<path>`          | Specify target directory for analysis reports       |
+| `--scan-report`                | Generate HTML report with detailed analysis results |
+| `--list-rules`                 | Display all available analysis rules                |
+| `--include-rules=<rule1, ...>` | Run analysis for specific rules only                |
+| `--exclude-rules=<rule1, ...>` | Exclude specific rules from analysis                |
+| `--platforms=<platform1, ...>` | Define platforms for result reporting               |
+
+## Running analysis
+
+You can analyze all Ballerina files in the current package by running the following command inside the package
+directory:
+
+```
+$ bal scan
+```
+
+This command will:
+
+- Compile and analyze all `.bal` files in the current package
+- Print results to the console
+- Save results in JSON format in the `target/scan` directory
+
+If you want to analyze a specific package, you can provide the package name as an argument:
+
+```
+$ bal scan mypackage
+```
+
+If you want to analyze a specific standalone Ballerina file, you can provide the file name as an argument:
+
+```
+$ bal scan myfile.bal
+```
+
+## Report generation
+
+To generate a detailed HTML report of the analysis results, use the `--scan-report` option:
 
 ```
 $ bal scan --scan-report
 ```
 
-This will produce the HTML report and scan results inside the `target/report` directory.
+This will produce a HTML report and scan results in JSON format inside the `target/report` directory.
 
-The report includes a summary of the number of code smells, bugs, and vulnerabilities found in each file.
+The HTML report includes a summary of the number of code smells, bugs, and vulnerabilities found in each file.
 
 ![scan-report-summary-view](/learn/images/scan-tool-html-report-summary-view.png)
 
-To investigate further, you can click on a file name to view a detailed breakdown of the issues. This view highlights the exact lines where problems were detected, along with a description, and the severity level.
+To investigate further, you can click on a file name to view a detailed breakdown of the issues.
+This view highlights the exact lines where problems were detected, along with a description, and the severity level.
 
 ![scan-report-file-view](/learn/images/scan-tool-html-report-file-view.png)
 
-### List all available analysis rules
+## Custom target directory
 
-If you’d like to explore the full set of rules the tool can apply, run:
+You can specify a custom target directory for the analysis results using the `--target-dir` option.
+This is useful if you want to store the results in a specific location or if you are working with multiple projects.
+
+```
+$ bal scan --target-dir="path/to/your/target/directory"
+```
+
+## List available rules
+
+To view all available rules for your project, you can use the `--list-rules` option:
 
 ```
 $ bal scan --list-rules
 ```
 
-This will display a comprehensive list of available rules for your project, which you can include or exclude in future scans.
+This will display a comprehensive list of available rules for your project, which you can include or exclude in future
+scans.
 
 The output will look something like this:
 
 ![list-rules](/learn/images/scan-tool-list-rules.png)
 
-> **Note:** The list of displayed rules is specific to the current Ballerina project and is determined based on its dependencies.
+> **Note:** The displayed rules are project-specific and determined by your project's dependencies.
 
-### Run analysis for specific rules
+## Include specific rules
 
-If you want to apply a specific set of rules, list them as a comma-separated string by specifying the rule ID:
+You can run the analysis for specific rules by using the `--include-rules` option.
+This allows you to focus on particular areas of your codebase that you want to analyze.
+
+```
+$ bal scan --include-rules="ballerina:1"
+```
+
+You can also include multiple rules by listing them as a comma-separated string:
 
 ```
 $ bal scan --include-rules="ballerina:1, ballerina/io:2"
 ```
 
-To ignore a specific set of rules during the analysis, use the following command:
+## Exclude specific rules
+
+You can exclude specific rules from the analysis using the `--exclude-rules` option.
+This is useful if you want to ignore certain rules that are not relevant to your project or if you have already
+addressed them.
+
+```
+$ bal scan --exclude-rules="ballerina:1"
+```
+
+To exclude multiple rules, provide them as a comma-separated list:
 
 ```
 $ bal scan --exclude-rules="ballerina:1, ballerina/io:2"
 ```
 
-## Publishing static code analysis reports to SonarQube.
+## Platform integration
 
-To learn how to publish reports to SonarQube, refer to [Configuration for Platform Plugins](https://github.com/ballerina-platform/static-code-analysis-tool/blob/main/docs/static-code-analysis-tool/ScanFileConfigurations.md#configuration-for-platform-plugins).
+You can report the analysis results to platforms such as SonarQube using the `--platforms` option.
+
+```
+$ bal scan --platforms="sonarqube"
+```
+
+To specify more than one platform, separate them with commas:
+
+```
+$ bal scan --platforms="sonarqube, semgrep, codeql"
+```
+
+### Publishing static code analysis reports to SonarQube
+
+To learn how to publish reports to SonarQube, refer
+to [Configuration for Platform Plugins](https://github.com/ballerina-platform/static-code-analysis-tool/blob/main/docs/static-code-analysis-tool/ScanFileConfigurations.md#configuration-for-platform-plugins).
